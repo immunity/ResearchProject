@@ -214,7 +214,9 @@ for root, direc, files in os.walk(os.getcwd()):
             for item in each.items:
                 timeArray.append(item.time)
                 itemArray.append(1)
-                print item.name
+                print each.name, item.name
+                if(each.name == 'npc_dota_hero_nyx_assassin' and item.name == 'modifier_item_dagon'):
+                    plt.axvline(item.time, color='r')
             plot4, = plt.plot(timeArray, itemArray, 'c^')
             plt.ylim([0, yAxis + 1])
             box = ax.get_position()
