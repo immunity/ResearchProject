@@ -1,5 +1,7 @@
 import json
 import sys
+import urllib2
+from HTMLParser import HTMLParser
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
@@ -12,6 +14,7 @@ class Character:
         self.kills = list()
         self.items = list()
         self.name = ""
+        self.team = ""
 
 class Gold:
     def __init__(self, gold, gameTime):
@@ -33,6 +36,44 @@ class Item(object):
     def __init__(self, name, time):
         self.name = name
         self.time = time
+
+class DotaHtmlParser(HTMLParser):
+    def handle_data(self, data):
+        global currentTag
+        global currentTeam
+        if(currentTag == "hero"):
+            data = data.replace(' ', '_')
+            data = data.lower()
+            data = "npc_dota_hero_" + data
+            for c in characterList:
+                if(c.name == data):
+                    c.team = currentTeam    
+        currentTag = "null"
+    def handle_starttag(self, tag, attrs):
+        global currentTag
+        global currentTeam
+        if(tag == 'section'):
+            for element in attrs:
+                if(element[0] == 'class'):
+                    if(element[1] == 'radiant'):
+                        currentTeam = 'radiant'
+                    if(element[1] == 'dire'):
+                        currentTeam = 'dire'
+        if(tag == 'a'):
+            for element in attrs:
+                if(element[0] == 'class'):
+                    if(element[1] == 'hero-link'):
+                        currentTag = "hero"
+    def handle_endtag(self, tag):
+        if(tag == 'section'):
+            currentTag = 'null'
+        if(tag == 'a'):
+            currentTag = 'null'
+
+global currentTag
+global currentTeam
+currentTag = "test"
+currentTeam = "temp"
 
 colorList = list()
 colorList.append('b^')
@@ -167,45 +208,17 @@ for each in characterList:
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend([plot2, plot3, plot4], ["Levels", "Kills", "Items"], loc='center left', bbox_to_anchor=(1,0.5))
     plt.savefig(each.name + "_progression.png")
-'''for each in characterList:
-    plt.figure(each.name)
-    colorString = colorList[color]
-    for gold in each.goldList:
-        plt.plot(gold.time, gold.amount, 'bo', linestyle='-')
-    plt.ylabel(each.name)
-    totalGold = 0
-    color += 1
-plt.show()
-color = 0
 
-for each in characterList:
-    plt.figure(each.name)
-    colorString = colorList[color]
-    timeArray = []
-    levelArray = []
-    for level in each.levelUpTimes:
-        timeArray.append(level.time)
-        levelArray.append(level.level)
-    plt.savefig('levelProgression.png');
-    plt.plot(timeArray, levelArray, colorString, linestyle='-')
-    plt.ylabel("Total Level Progression for each character")
-    color += 1
-plt.show()
-color = 0
+url = "http://dotabuff.com/matches/168971298"
+page = urllib2.urlopen(url)
+data = page.read()
 
-for each in characterList:
-    colorString = colorList[color]
-    timeArray = []
-    killsArray = []
-    for kill in each.kills:
-        timeArray.append(kill.time)
-        killsArray.append(each.kills.index(kill) + 1)
-    plt.savefig('killTimes.png');
-    plt.plot(timeArray, killsArray, colorString, linestyle='-')
-    plt.ylabel("Kill times")
-    color += 1
-plt.show();
-color = 0'''
+parser = DotaHtmlParser()
+
+parser.feed(data)
+
+for c in characterList:
+    print(c.name, c.team)
 
 raw_input()
 
