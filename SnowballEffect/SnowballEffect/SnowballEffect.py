@@ -229,9 +229,6 @@ for root, direc, files in os.walk(os.getcwd()):
         killsFile.close()
         itemsFile.close()
 
-
-        del characterList
-
         '''for c in characterList:
             print(c.name, c.team)'''
 
